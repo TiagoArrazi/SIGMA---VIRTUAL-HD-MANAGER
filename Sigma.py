@@ -1,3 +1,8 @@
+# Grupo Sigma
+# Tiago Costa Arrazi - 222160319
+# Guilherme Coelho Small Zicari - ?????????
+
+
 import pickle
 import subprocess
 from binascii import hexlify
@@ -169,7 +174,7 @@ class Directory:
         self.structure = {}
 
 
-@pysnooper.snoop()
+# @pysnooper.snoop()
 def create_hd(hd_name, blocks, _bytes):
 
     with open(hd_name, 'wb') as f:
@@ -182,7 +187,7 @@ def create_hd(hd_name, blocks, _bytes):
             hd_list.write(f'{hd_name} {blocks} {_bytes}\n')
 
 
-@pysnooper.snoop()
+# @pysnooper.snoop()
 def dir_hd():
 
     try:
@@ -193,7 +198,7 @@ def dir_hd():
         print('[ERROR] In order to list all HDs you must create one first')
 
 
-@pysnooper.snoop()
+# @pysnooper.snoop()
 def select_hd(hd_name):
 
     try:
@@ -214,7 +219,7 @@ def select_hd(hd_name):
         print('[ERROR] There are no HDs')
 
 
-@pysnooper.snoop()
+# @pysnooper.snoop()
 def divide_chunks(l, n):
     for i in range(0, len(l), n):
         yield l[i:i + n]
@@ -253,7 +258,7 @@ def type_hd():
         print('[ERROR] no HD is selected')
 
 
-@pysnooper.snoop()
+# @pysnooper.snoop()
 def format_hd():
 
     try:
@@ -281,7 +286,7 @@ def format_hd():
         print('[ERROR] no HD is selected')
 
 
-@pysnooper.snoop()
+# @pysnooper.snoop()
 def mk_dir(dir_name):
 
     try:
@@ -317,7 +322,7 @@ def mk_dir(dir_name):
         print('[ERROR] no HD is selected')
 
 
-@pysnooper.snoop()
+# @pysnooper.snoop()
 def pop_from_str_path(path):
 
     str_path_list = path.split('/')
@@ -330,7 +335,7 @@ def pop_from_str_path(path):
     return path
 
 
-@pysnooper.snoop()
+# @pysnooper.snoop()
 def from_path_in_structure_to_path_list(path):
 
     filtered_path_in_structure = re.sub('\[', ' ', path)
@@ -340,7 +345,7 @@ def from_path_in_structure_to_path_list(path):
     return new_path_list
 
 
-@pysnooper.snoop()
+# @pysnooper.snoop()
 def change_dir(my_path):
 
     try:
@@ -381,7 +386,7 @@ def change_dir(my_path):
         print('[ERROR] no HD is selected')
 
 
-@pysnooper.snoop()
+# @pysnooper.snoop()
 def list_dir():
 
     try:
@@ -399,7 +404,7 @@ def list_dir():
 # =============================================================================================================
 
 
-@pysnooper.snoop()
+# @pysnooper.snoop()
 def mk_file(filename):
 
     try:
@@ -436,7 +441,7 @@ def mk_file(filename):
         print('[ERROR] no HD is selected')
 
 
-@pysnooper.snoop()
+# @pysnooper.snoop()
 def type_file(filename):
 
     try:
@@ -460,7 +465,7 @@ def type_file(filename):
         print('[ERROR] no HD is selected')
 
 
-@pysnooper.snoop()
+# @pysnooper.snoop()
 def delete_file(filename):
 
     try:
