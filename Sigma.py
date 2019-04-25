@@ -3,11 +3,157 @@ import subprocess
 from binascii import hexlify
 import sys
 import re
+import pysnooper
 
 selected_hd = ""
 path_in_structure = ""
 str_path = "/"
 
+
+def release_the_kraken():
+
+    cmd_list = ['\n',
+                '               CREATEHD       ALLOWS YOU TO CREATE AN HD',
+                '               DIRHD          SHOW ALL CREATED HDs',
+                '               SELECTHD       SELECT AN HD TO BE MANIPULATED',
+                '               TYPEHD         SHOWS HD CONTENT',
+                '               FORMATHD       WIPE HD RECORDED DATA',
+                '\n',
+                '               CREATE         CREATE A FILE',
+                '               DEL            DELETE A FILE',
+                '               MKDIR          CREATE A DIRECTORY',
+                '               CD             HD NAVIGATION',
+                '\n',
+                '               CLS            CLEAR SCREEN',
+                '\n']
+
+
+    for line in cmd_list:
+        print(line)
+
+
+
+cmd_help = {'createhd': """ 
+
+             createhd <HD name> <Number of blocks> <Bytes per block> 
+                            
+             This command is used to create a new HD with specified size.
+                            
+             Example: createhd HD1 1024 32
+                             
+                        """,
+            'dirhd': """
+            
+             dirhd <no parameters>
+                            
+             This commmand is used to list all HDs created so far.
+                            
+             Example: dirhd (no shit Sherlock!)
+                            
+                        """,
+            'selecthd': """ 
+            
+             selecthd <HD name>
+
+             This command is used to select an HD.
+
+             Example: selecthd HD1
+                                      
+                        """,
+            'typehd': """ 
+            
+             typehd <no parameters>
+                            
+             This command is used to print the HD's content 
+             in both patterns hexadecimal and characters.
+                            
+             Example: typehd (an HD must be selected previously)
+                            
+                        """,
+            'formathd': """ 
+
+             formathd <no parameters>
+
+             This command is used to wipe out recorded data inside an HD
+             returning to its initial state.
+                            
+             Example: typehd (an HD must be selected previously)
+
+                    """,
+            'create': """ 
+
+             create <filename>
+
+             This command is used to create a file inside your current directory.
+
+             Example: create sample_file
+                                     
+                      Press ENTER then Ctrl+Z to end input
+
+                      """,
+            'type': """ 
+
+             type <filename>
+
+             This command is used to print a file's content.
+                            
+             Example: type sample_file
+
+                        """,
+            'cls': """ 
+
+             cls <no parameters>
+
+             This command is used to get the screen cleared.
+
+                   """,
+            'mkdir': """ 
+
+             mkdir <directory name>
+
+             This command is used to create a directory.
+
+             Example: mkdir sample_directory
+
+                        """,
+            'cd': """ 
+
+             cd <path>
+
+             This command is used to navigate through the HD's hierarchy.
+
+             Example 1: cd dir1 (single directory path)
+             Example 2: cd dir1/dir2 (absolute path)
+             Example 3: cd .. (goes back to the parent directory)
+
+                        """,
+            'dir': """ 
+
+             dir <no parameters>
+
+             This command is used to list all content inside a directory.
+
+             Example: dir
+
+                        """,
+            'del': """ 
+
+             typehd <filename>
+
+             This command is used delete a file
+
+             Example: del sample_file
+
+                        """,
+            'exit': """ 
+
+             If you wanna stay, don't type it. 
+             As a matter of fact you can type it, but don't press ENTER, 'K?
+                            
+             USE WITH CAUTION!
+                            
+                        """
+            }
 
 class File:
 
@@ -23,6 +169,7 @@ class Directory:
         self.structure = {}
 
 
+@pysnooper.snoop()
 def create_hd(hd_name, blocks, _bytes):
 
     with open(hd_name, 'wb') as f:
@@ -35,6 +182,7 @@ def create_hd(hd_name, blocks, _bytes):
             hd_list.write(f'{hd_name} {blocks} {_bytes}\n')
 
 
+@pysnooper.snoop()
 def dir_hd():
 
     try:
@@ -45,6 +193,7 @@ def dir_hd():
         print('[ERROR] In order to list all HDs you must create one first')
 
 
+@pysnooper.snoop()
 def select_hd(hd_name):
 
     try:
@@ -65,11 +214,13 @@ def select_hd(hd_name):
         print('[ERROR] There are no HDs')
 
 
+@pysnooper.snoop()
 def divide_chunks(l, n):
     for i in range(0, len(l), n):
         yield l[i:i + n]
 
 
+# @pysnooper.snoop()
 def type_hd():
 
     try:
@@ -102,6 +253,7 @@ def type_hd():
         print('[ERROR] no HD is selected')
 
 
+@pysnooper.snoop()
 def format_hd():
 
     try:
@@ -129,6 +281,7 @@ def format_hd():
         print('[ERROR] no HD is selected')
 
 
+@pysnooper.snoop()
 def mk_dir(dir_name):
 
     try:
@@ -164,6 +317,7 @@ def mk_dir(dir_name):
         print('[ERROR] no HD is selected')
 
 
+@pysnooper.snoop()
 def pop_from_str_path(path):
 
     str_path_list = path.split('/')
@@ -176,6 +330,7 @@ def pop_from_str_path(path):
     return path
 
 
+@pysnooper.snoop()
 def from_path_in_structure_to_path_list(path):
 
     filtered_path_in_structure = re.sub('\[', ' ', path)
@@ -185,6 +340,7 @@ def from_path_in_structure_to_path_list(path):
     return new_path_list
 
 
+@pysnooper.snoop()
 def change_dir(my_path):
 
     try:
@@ -225,6 +381,7 @@ def change_dir(my_path):
         print('[ERROR] no HD is selected')
 
 
+@pysnooper.snoop()
 def list_dir():
 
     try:
@@ -242,6 +399,7 @@ def list_dir():
 # =============================================================================================================
 
 
+@pysnooper.snoop()
 def mk_file(filename):
 
     try:
@@ -278,6 +436,7 @@ def mk_file(filename):
         print('[ERROR] no HD is selected')
 
 
+@pysnooper.snoop()
 def type_file(filename):
 
     try:
@@ -301,6 +460,7 @@ def type_file(filename):
         print('[ERROR] no HD is selected')
 
 
+@pysnooper.snoop()
 def delete_file(filename):
 
     try:
@@ -337,7 +497,26 @@ def delete_file(filename):
         print('[ERROR] no HD is selected')
 
 
+def clear():
+    subprocess.Popen('cls', shell=True).communicate()
+
+    print("""
+                  ==========/
+                   \\\\
+                    \\\\
+                     \\\\
+                     //
+                    //
+                   // 
+                  ==========\\
+
+             """)
+
+
 if __name__ == '__main__':
+
+
+    clear()
 
     while True:
 
@@ -383,7 +562,7 @@ if __name__ == '__main__':
                 print('[ERROR] Missing arguments -- type <file>')
 
         elif shell[0] == 'cls':  # OK
-            subprocess.Popen('cls', shell=True).communicate()
+            clear()
 
         elif shell[0] == 'mkdir':  # OK
             try:
@@ -405,10 +584,21 @@ if __name__ == '__main__':
             except IndexError:
                 print('[ERROR] Missing arguments -- del <file>')
 
+        elif shell[0] == 'help':
+            try:
+                print(cmd_help[shell[1]])
+
+            except IndexError:
+                release_the_kraken()
+
+            except KeyError:
+                print('[ERROR] No such command')
+
         elif shell[0] == 'show':
             with open(selected_hd, 'rb') as pickle_in:
                 root = pickle.load(pickle_in)
                 print(root)
 
         elif shell[0] == 'exit':  # OK
+            subprocess.Popen('cls', shell=True).communicate()
             exit()
