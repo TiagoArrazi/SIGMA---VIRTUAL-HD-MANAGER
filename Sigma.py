@@ -1,6 +1,6 @@
 # Grupo Sigma
 # Tiago Costa Arrazi - 222160319
-# Guilherme Coelho Small Zicari - ?????????
+# Guilherme Coelho Small Zicari - 222170300
 
 
 import pickle
@@ -502,6 +502,52 @@ def delete_file(filename):
         print('[ERROR] no HD is selected')
 
 
+# @pysnooper.snoop()
+def copyfrom(real_name, virtual_name):
+
+        with open(real_name, 'rb') as image:
+            image_content = image.readlines()
+
+        file = File(virtual_name, image_content)
+
+        with open(selected_hd, 'rb') as pickle_in:
+
+            with open('HD_List', 'r') as hd_list:
+
+                for line in hd_list:
+                    if selected_hd in line:
+                        hd_info = line.split(' ')
+                        blocks = int(hd_info[1])
+                        _bytes = int(hd_info[2])
+
+                root = pickle.load(pickle_in)
+                eval(f'root{path_in_structure}')[virtual_name] = file.content
+
+        with open('HD_List', 'r') as hd_list:
+
+            for line in hd_list:
+                if selected_hd in line:
+                    hd_info = line.split(' ')
+                    blocks = int(hd_info[1])
+                    _bytes = int(hd_info[2])
+
+            with open(selected_hd, 'wb') as pickle_out:
+                pickle.dump(root, pickle_out)
+                pickle_out.seek(blocks * _bytes - 1)
+                pickle_out.write(b'\0')
+
+
+# @pysnooper.snoop()
+def copyto(virtual_name, real_name):
+
+    with open(selected_hd, 'rb') as pickle_in:
+        with open(real_name, 'wb+') as image:
+
+            root = pickle.load(pickle_in)
+            image.write(b''.join((eval(f'root{path_in_structure}')[virtual_name])))
+
+
+# @pysnooper.snoop()
 def clear():
     subprocess.Popen('cls', shell=True).communicate()
 
@@ -519,7 +565,6 @@ def clear():
 
 
 if __name__ == '__main__':
-
 
     clear()
 
@@ -598,6 +643,12 @@ if __name__ == '__main__':
 
             except KeyError:
                 print('[ERROR] No such command')
+
+        elif shell[0] == 'copyfrom':
+            copyfrom(shell[1], shell[2])
+
+        elif shell[0] == 'copyto':
+            copyto(shell[1], shell[2])
 
         elif shell[0] == 'show':
             with open(selected_hd, 'rb') as pickle_in:
