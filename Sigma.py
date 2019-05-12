@@ -37,7 +37,6 @@ def release_the_kraken():
         print(line)
 
 
-
 cmd_help = {'createhd': """ 
 
              createhd <HD name> <Number of blocks> <Bytes per block> 
@@ -547,6 +546,19 @@ def copyto(virtual_name, real_name):
             image.write(b''.join((eval(f'root{path_in_structure}')[virtual_name])))
 
 
+# @pysnoopper.snoop()
+def tree(structure, depth=0):
+
+    for key in eval(f'structure{path_in_structure}.keys()'):
+
+        if isinstance(structure[key], dict):
+            print('{}|{}{}'.format((depth ** 2) * ' ', depth * '__', key))
+            tree(structure[key], depth + 1)
+
+        else:
+            print('{}|{}{}'.format((depth ** 2) * ' ', depth * '__', key))
+
+
 # @pysnooper.snoop()
 def clear():
     subprocess.Popen('cls', shell=True).communicate()
@@ -649,6 +661,11 @@ if __name__ == '__main__':
 
         elif shell[0] == 'copyto':
             copyto(shell[1], shell[2])
+
+        elif shell[0] == 'tree':
+            with open(selected_hd, 'rb') as pickle_in:
+                root = pickle.load(pickle_in)
+                tree(root)
 
         elif shell[0] == 'show':
             with open(selected_hd, 'rb') as pickle_in:
