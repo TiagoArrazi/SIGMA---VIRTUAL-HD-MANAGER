@@ -9,10 +9,16 @@ from binascii import hexlify
 import sys
 import re
 import pysnooper
+import math
 
 selected_hd = ""
 path_in_structure = ""
 str_path = "/"
+
+dir_count = 0
+file_count = 0
+dir_total_size = 0
+file_total_size = 0
 
 
 def release_the_kraken():
@@ -52,7 +58,7 @@ cmd_help = {'createhd': """
                             
              This commmand is used to list all HDs created so far.
                             
-             Example: dirhd (no shit Sherlock!)
+             Example: dirhd 
                             
                         """,
             'selecthd': """ 
@@ -217,6 +223,55 @@ def select_hd(hd_name):
                 return False
     except FileNotFoundError:
         print('[ERROR] There are no HDs')
+
+
+# @pysnooper.snoop()
+def status_hd():
+    with open(selected_hd, 'rb') as pickle_in:
+
+        with open('HD_List', 'r') as hd_list:
+
+            for line in hd_list:
+                if selected_hd in line:
+                    hd_info = line.split(' ')
+                    blocks = int(hd_info[1])
+                    _bytes = int(hd_info[2])
+
+            root = pickle.load(pickle_in)
+            root_list = []
+
+            for element in str(root):
+                root_list.append(element)
+
+            splitted_list = list(divide_chunks(root_list, _bytes))
+
+            i = 0
+            deceiver = 0
+
+            for l in splitted_list:
+                i += 1
+            deceiver = i * _bytes
+
+            print(f'Max size: {blocks * _bytes} bytes')
+            print(f'Free:  {(blocks * _bytes) - deceiver} bytes')
+            print(f'Used: {deceiver} bytes')
+            count_dir_file(root)
+            print('Number of folders:', dir_count)
+            print('Number of files:', file_count)
+
+
+# @pysnooper.snoop()
+def count_dir_file(input):
+    global dir_count
+    global file_count
+
+    for key, value in input.items():
+        if isinstance(value, dict):
+            dir_count += 1
+            count_dir_file(value)
+
+        else:
+            file_count += 1
 
 
 # @pysnooper.snoop()
@@ -522,6 +577,30 @@ def delete_file(filename):
 
 
 # @pysnooper.snoop()
+def rename_file(filename, new_name):
+
+    with open(selected_hd, 'rb') as pickle_in:
+        root = pickle.load(pickle_in)
+        if not isinstance(eval(f'root{path_in_structure}')[filename], dict):
+            eval(f'root{path_in_structure}')[new_name] = eval(f'root{path_in_structure}').pop(filename)
+        else:
+            print('[ERROR] Not a file')
+
+    with open('HD_List', 'r') as hd_list:
+
+        for line in hd_list:
+            if selected_hd in line:
+                hd_info = line.split(' ')
+                blocks = int(hd_info[1])
+                _bytes = int(hd_info[2])
+
+        with open(selected_hd, 'wb') as pickle_out:
+            pickle.dump(root, pickle_out)
+            pickle_out.seek(blocks * _bytes - 1)
+            pickle_out.write(b'\0')
+
+
+# @pysnooper.snoop()
 def copyfrom(real_name, virtual_name):
 
         with open(real_name, 'rb') as image:
@@ -568,7 +647,27 @@ def copyto(virtual_name, real_name):
 
 # @pysnooper.snoop()
 def rmdir(dirname):
-    pass
+
+    with open(selected_hd, 'rb') as pickle_in:
+        root = pickle.load(pickle_in)
+
+        if isinstance(eval(f'root{path_in_structure}')[dirname], dict):
+            del eval(f'root{path_in_structure}')[dirname]
+        else:
+            print('[ERROR] not a directory')
+
+    with open('HD_List', 'r') as hd_list:
+
+        for line in hd_list:
+            if selected_hd in line:
+                hd_info = line.split(' ')
+                blocks = int(hd_info[1])
+                _bytes = int(hd_info[2])
+
+        with open(selected_hd, 'wb') as pickle_out:
+            pickle.dump(root, pickle_out)
+            pickle_out.seek(blocks * _bytes - 1)
+            pickle_out.write(b'\0')
 
 
 # @pysnooper.snoop()
@@ -636,8 +735,27 @@ def copy(src_path, dest_path):
 
 
 # @pysnooper.snoop()
-def renamedir(src_path, dest_path):
-    pass
+def renamedir(dirname, new_name):
+
+    with open(selected_hd, 'rb') as pickle_in:
+        root = pickle.load(pickle_in)
+        if isinstance(eval(f'root{path_in_structure}')[dirname], dict):
+            eval(f'root{path_in_structure}')[new_name] = eval(f'root{path_in_structure}').pop(dirname)
+        else:
+            print('[ERROR] Not a directory')
+
+    with open('HD_List', 'r') as hd_list:
+
+        for line in hd_list:
+            if selected_hd in line:
+                hd_info = line.split(' ')
+                blocks = int(hd_info[1])
+                _bytes = int(hd_info[2])
+
+        with open(selected_hd, 'wb') as pickle_out:
+            pickle.dump(root, pickle_out)
+            pickle_out.seek(blocks * _bytes - 1)
+            pickle_out.write(b'\0')
 
 
 # @pysnoopper.snoop()
@@ -703,6 +821,9 @@ if __name__ == '__main__':
         elif shell[0] == 'formathd':  # OK
             format_hd()
 
+        elif shell[0] == 'statushd':
+            status_hd()
+
         elif shell[0] == 'create':  # OK
             try:
                 mk_file(shell[1])
@@ -717,6 +838,9 @@ if __name__ == '__main__':
             except IndexError:
                 print('[ERROR] Missing arguments -- type <file>')
 
+        elif shell[0] == 'rename':
+            rename_file(shell[1], shell[2])
+
         elif shell[0] == 'cls':  # OK
             clear()
 
@@ -726,6 +850,12 @@ if __name__ == '__main__':
 
             except IndexError:
                 print('[ERROR] Missing arguments -- mkdir <directory>')
+
+        elif shell[0] == 'rmdir':  # OK
+            rmdir(shell[1])
+
+        elif shell[0] == 'renamedir':  # OK
+            renamedir(shell[1], shell[2])
 
         elif shell[0] == 'cd':  # OK
             change_dir(shell[1])
