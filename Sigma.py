@@ -159,6 +159,7 @@ cmd_help = {'createhd': """
                         """
             }
 
+
 class File:
 
     def __init__(self, filename, content):
@@ -400,7 +401,26 @@ def list_dir():
         print('[ERROR] no HD is selected')
 
 
-# =============================================================================================================
+# @pysnooper.snoop()
+def remove_hd(hd_name):
+
+    global selected_hd
+    global str_path
+    global path_in_structure
+
+    with open('HD_List', 'r') as hd_list:
+        all_hds = [line if hd_name not in line.split(' ') else '' for line in list(hd_list.readlines())]
+
+    with open('HD_List', 'w') as hd_list:
+        [hd_list.write(line) if line != '' else None for line in all_hds]
+
+    if hd_name == selected_hd:
+        selected_hd = ''
+        str_path = '/'
+        path_in_structure = ''
+
+
+    subprocess.Popen('del {}'.format(hd_name), shell=True).communicate()
 
 
 # @pysnooper.snoop()
@@ -546,6 +566,80 @@ def copyto(virtual_name, real_name):
             image.write(b''.join((eval(f'root{path_in_structure}')[virtual_name])))
 
 
+# @pysnooper.snoop()
+def rmdir(dirname):
+    pass
+
+
+# @pysnooper.snoop()
+def move(src_path, dest_path):
+
+    with open(selected_hd, 'rb') as pickle_in:
+        root = pickle.load(pickle_in)
+
+        src_path_list = src_path.split('/')[1:]
+        dest_path_list = dest_path.split('/')[1:]
+        to_be_popped = src_path_list[-1]
+        path_to_be_popped_list = src_path_list[:-1]
+
+        src_path_in_structure = ''.join([f"[\'{_dir}\']" for _dir in src_path_list])
+        dest_path_in_structure = ''.join([f"[\'{_dir}\']" for _dir in dest_path_list])
+        path_to_be_popped_in_structure = ''.join([f"[\'{_dir}\']" for _dir in path_to_be_popped_list])
+
+        if dest_path == '/':
+            root[to_be_popped] = eval(f"root{src_path_in_structure}")
+        else:
+            eval(f"root{dest_path_in_structure}")[to_be_popped] = eval(f"root{src_path_in_structure}")
+
+        eval(f"root{path_to_be_popped_in_structure}").pop(to_be_popped)
+
+    with open('HD_List', 'r') as hd_list:
+
+        for line in hd_list:
+            if selected_hd in line:
+                hd_info = line.split(' ')
+                blocks = int(hd_info[1])
+                _bytes = int(hd_info[2])
+
+        with open(selected_hd, 'wb') as pickle_out:
+            pickle.dump(root, pickle_out)
+            pickle_out.seek(blocks * _bytes - 1)
+            pickle_out.write(b'\0')
+
+
+# @pysnooper.snoop()
+def copy(src_path, dest_path):
+
+    with open(selected_hd, 'rb') as pickle_in:
+        root = pickle.load(pickle_in)
+
+        src_path_list = src_path.split('/')[1:]
+        dest_path_list = dest_path.split('/')[1:]
+
+        src_path_in_structure = ''.join([f"[\'{_dir}\']" for _dir in src_path_list])
+        dest_path_in_structure = ''.join([f"[\'{_dir}\']" for _dir in dest_path_list])
+
+    eval(f"root{dest_path_in_structure}")[src_path_list[-1]] = eval(f"root{src_path_in_structure}")
+
+    with open('HD_List', 'r') as hd_list:
+
+        for line in hd_list:
+            if selected_hd in line:
+                hd_info = line.split(' ')
+                blocks = int(hd_info[1])
+                _bytes = int(hd_info[2])
+
+        with open(selected_hd, 'wb') as pickle_out:
+            pickle.dump(root, pickle_out)
+            pickle_out.seek(blocks * _bytes - 1)
+            pickle_out.write(b'\0')
+
+
+# @pysnooper.snoop()
+def renamedir(src_path, dest_path):
+    pass
+
+
 # @pysnoopper.snoop()
 def tree(structure, depth=0):
 
@@ -646,7 +740,7 @@ if __name__ == '__main__':
             except IndexError:
                 print('[ERROR] Missing arguments -- del <file>')
 
-        elif shell[0] == 'help':
+        elif shell[0] == 'help':  # OK
             try:
                 print(cmd_help[shell[1]])
 
@@ -656,16 +750,25 @@ if __name__ == '__main__':
             except KeyError:
                 print('[ERROR] No such command')
 
-        elif shell[0] == 'copyfrom':
+        elif shell[0] == 'copyfrom':  # OK
             copyfrom(shell[1], shell[2])
 
-        elif shell[0] == 'copyto':
+        elif shell[0] == 'copyto':  # OK
             copyto(shell[1], shell[2])
 
-        elif shell[0] == 'tree':
+        elif shell[0] == 'tree':  # OK
             with open(selected_hd, 'rb') as pickle_in:
                 root = pickle.load(pickle_in)
                 tree(root)
+
+        elif shell[0] == 'move':  # OK
+            move(shell[1], shell[2])
+
+        elif shell[0] == 'copy':  # OK
+            copy(shell[1], shell[2])
+
+        elif shell[0] == 'removehd':  # OK
+            remove_hd(shell[1])
 
         elif shell[0] == 'show':
             with open(selected_hd, 'rb') as pickle_in:
